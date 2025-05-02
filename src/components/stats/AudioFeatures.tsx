@@ -5,10 +5,6 @@ import { getTopTracks, getAudioFeatures } from "@/lib/spotify";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
-interface AudioFeaturesProps {
-    accessToken: string;
-}
-
 interface AudioFeature {
     id: string;
     danceability: number;
@@ -22,7 +18,7 @@ interface SpotifyTrack {
     id: string;
 }
 
-export function AudioFeatures({ accessToken }: AudioFeaturesProps) {
+export function AudioFeatures() {
     const [features, setFeatures] = useState<AudioFeature[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -42,7 +38,7 @@ export function AudioFeatures({ accessToken }: AudioFeaturesProps) {
         };
 
         fetchFeatures();
-    }, [accessToken]);
+    }, []);
 
     if (loading) {
         return <div>Loading...</div>;

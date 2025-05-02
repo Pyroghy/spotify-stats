@@ -5,13 +5,11 @@ import { TopTracks } from "@/components/stats/TopTracks";
 import { TopArtists } from "@/components/stats/TopArtists";
 import { RecentlyPlayed } from "@/components/stats/RecentlyPlayed";
 import { AudioFeatures } from "@/components/stats/AudioFeatures";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function StatsPage() {
     const router = useRouter();
-    const [accessToken, setAccessToken] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         // Get the access token from the URL hash
@@ -24,7 +22,7 @@ export default function StatsPage() {
 
         if (error) {
             console.error('Auth error:', error, errorDetails);
-            setError(error);
+            router.push('/');
             return;
         }
 
@@ -39,37 +37,7 @@ export default function StatsPage() {
             localStorage.setItem('spotify_refresh_token', refreshToken);
         }
         localStorage.setItem('spotify_access_token', token);
-
-        setAccessToken(token);
     }, [router]);
-
-    if (error) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-red-500 mb-4">Authentication Error</h1>
-                    <p className="text-muted-foreground">{error}</p>
-                    <button 
-                        onClick={() => router.push('/')}
-                        className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
-                    >
-                        Try Again
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    if (!accessToken) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Loading...</h1>
-                    <p className="text-muted-foreground">Please wait while we authenticate your session.</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-background">
@@ -78,22 +46,22 @@ export default function StatsPage() {
                 <div className="grid gap-6">
                     <section>
                         <h2 className="text-2xl font-bold mb-4">Your Top Tracks</h2>
-                        <TopTracks accessToken={accessToken} />
+                        <TopTracks />
                     </section>
                     
                     <section>
                         <h2 className="text-2xl font-bold mb-4">Your Top Artists</h2>
-                        <TopArtists accessToken={accessToken} />
+                        <TopArtists />
                     </section>
                     
                     <section>
                         <h2 className="text-2xl font-bold mb-4">Recently Played</h2>
-                        <RecentlyPlayed accessToken={accessToken} />
+                        <RecentlyPlayed />
                     </section>
                     
                     <section>
                         <h2 className="text-2xl font-bold mb-4">Audio Features</h2>
-                        <AudioFeatures accessToken={accessToken} />
+                        <AudioFeatures />
                     </section>
                 </div>
             </main>

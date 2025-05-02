@@ -8,11 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from 'next/image';
 
-interface TopTracksProps {
-    accessToken: string;
-}
-
-export function TopTracks({ accessToken }: TopTracksProps) {
+export function TopTracks() {
     const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
     const [timeRange, setTimeRange] = useState<'short_term' | 'medium_term' | 'long_term'>('medium_term');
     const [loading, setLoading] = useState(true);
@@ -21,7 +17,7 @@ export function TopTracks({ accessToken }: TopTracksProps) {
         const fetchTracks = async () => {
             try {
                 setLoading(true);
-                const data = await getTopTracks(accessToken, timeRange);
+                const data = await getTopTracks(timeRange);
                 setTracks(data);
             } catch (error) {
                 console.error('Error fetching top tracks:', error);
@@ -31,7 +27,7 @@ export function TopTracks({ accessToken }: TopTracksProps) {
         };
 
         fetchTracks();
-    }, [accessToken, timeRange]);
+    }, [timeRange]);
 
     if (loading) {
         return <div>Loading...</div>;

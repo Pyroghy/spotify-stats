@@ -1,26 +1,22 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { Track as SpotifyTrack } from "@spotify/web-api-ts-sdk";
+import { PlayHistory } from "@spotify/web-api-ts-sdk";
 import { getRecentlyPlayed } from "@/lib/spotify";
 import { formatDuration } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from 'next/image';
 
-interface RecentlyPlayedProps {
-    accessToken: string;
-}
-
-export function RecentlyPlayed({ accessToken }: RecentlyPlayedProps) {
-    const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
+export function RecentlyPlayed() {
+    const [playHistory, setPlayHistory] = useState<PlayHistory[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchTracks = async () => {
             try {
                 setLoading(true);
-                const data = await getRecentlyPlayed(accessToken);
-                setTracks(data);
+                const data = await getRecentlyPlayed();
+                setPlayHistory(data);
             } catch (error) {
                 console.error('Error fetching recently played tracks:', error);
             } finally {
@@ -29,7 +25,7 @@ export function RecentlyPlayed({ accessToken }: RecentlyPlayedProps) {
         };
 
         fetchTracks();
-    }, [accessToken]);
+    }, []);
 
     if (loading) {
         return <div>Loading...</div>;
@@ -42,23 +38,23 @@ export function RecentlyPlayed({ accessToken }: RecentlyPlayedProps) {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {tracks.map((track) => (
-                        <div key={track.id} className="flex items-center space-x-4">
+                    {playHistory.map((item) => (
+                        <div key={item.track.id} className="flex items-center space-x-4">
                             <Image
-                                src={track.album.images[0]?.url}
-                                alt={track.name}
+                                src={item.track.album.images[0]?.url}
+                                alt={item.track.name}
                                 width={48}
                                 height={48}
                                 className="rounded"
                             />
                             <div className="flex-1">
-                                <div className="font-medium">{track.name}</div>
+                                <div className="font-medium">{item.track.name}</div>
                                 <div className="text-sm text-muted-foreground">
-                                    {track.artists.map(artist => artist.name).join(', ')}
+                                    {item.track.artists.map(artist => artist.name).join(', ')}
                                 </div>
                             </div>
                             <div className="text-sm text-muted-foreground">
-                                {formatDuration(track.duration_ms)}
+                                {formatDuration(item.track.duration_ms)}
                             </div>
                         </div>
                     ))}

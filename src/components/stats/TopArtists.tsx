@@ -7,11 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from 'next/image';
 
-interface TopArtistsProps {
-    accessToken: string;
-}
-
-export function TopArtists({ accessToken }: TopArtistsProps) {
+export function TopArtists() {
     const [artists, setArtists] = useState<SpotifyArtist[]>([]);
     const [timeRange, setTimeRange] = useState<'short_term' | 'medium_term' | 'long_term'>('medium_term');
     const [loading, setLoading] = useState(true);
@@ -20,7 +16,7 @@ export function TopArtists({ accessToken }: TopArtistsProps) {
         const fetchArtists = async () => {
             try {
                 setLoading(true);
-                const data = await getTopArtists(accessToken, timeRange);
+                const data = await getTopArtists(timeRange);
                 setArtists(data);
             } catch (error) {
                 console.error('Error fetching top artists:', error);
@@ -30,7 +26,7 @@ export function TopArtists({ accessToken }: TopArtistsProps) {
         };
 
         fetchArtists();
-    }, [accessToken, timeRange]);
+    }, [timeRange]);
 
     if (loading) {
         return <div>Loading...</div>;
