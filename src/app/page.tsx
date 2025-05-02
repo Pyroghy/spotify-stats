@@ -3,17 +3,49 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+function generateCodeVerifier(length: number) {
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    for (let i = 0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
+
+async function generateCodeChallenge(codeVerifier: string) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    const base64Url = btoa(String.fromCharCode(...new Uint8Array(digest)))
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+    return base64Url;
+}
+
 export default function Home() {
-    const handleLogin = () => {
+    const handleLogin = async () => {
         const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
         const redirectUri = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI;
-        const scope = 'user-read-email user-read-private user-top-read user-read-recently-played user-read-playback-state';
-        const state = crypto.getRandomValues(new Uint8Array(16)).join('');
+        const scope = 'user-read-email user-read-private user-top-read user-read-recently-played user-library-read user-follow-read playlist-read-private playlist-read-collaborative';
+        
+        // Generate and store code verifier
+        const codeVerifier = generateCodeVerifier(128);
+        localStorage.setItem('spotify_code_verifier', codeVerifier);
+        
+        // Generate code challenge
+        const codeChallenge = await generateCodeChallenge(codeVerifier);
+        
+        // Generate random state
+        const state = crypto.getRandomValues(new Uint8Array(16))
+            .reduce((acc, x) => acc + x.toString(16).padStart(2, '0'), '');
         
         const params = new URLSearchParams({
             client_id: clientId!,
             response_type: 'code',
             redirect_uri: redirectUri!,
+            code_challenge_method: 'S256',
+            code_challenge: codeChallenge,
             scope: scope,
             state: state,
         });
