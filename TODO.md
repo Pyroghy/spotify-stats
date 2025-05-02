@@ -1,12 +1,12 @@
 # Spotify Stats App MVP TODO List
 
 ## Core Features
-- [x] Spotify OAuth login
-- [x] Dashboard with:
+- [x] Spotify OAuth login using @spotify/web-api-ts-sdk
+- [x] Stats page with:
   - [x] Top tracks
   - [x] Top artists
   - [x] Recently played tracks
-- [ ] Basic stats visualization
+  - [x] Audio features analysis
 - [x] Time range selection (4 weeks, 6 months, all time)
 - [x] Sorting options for tracks and artists
 
@@ -19,24 +19,52 @@
 ## Project Setup
 - [x] Initialize Next.js project with TypeScript
 - [x] Set up Shadcn UI components
-- [x] Configure project structure and folder organization
-- [x] Set up environment variables for Spotify API credentials
+- [x] Configure project structure:
+  ```
+  src/
+    ├── app/
+    │   ├── page.tsx (home/landing)
+    │   ├── stats/
+    │   │   └── page.tsx (main stats dashboard)
+    │   └── api/
+    │       └── auth/
+    │           └── [...nextauth]/
+    │               └── route.ts
+    ├── components/
+    │   ├── ui/ (shadcn components)
+    │   ├── stats/
+    │   │   ├── TopTracks.tsx
+    │   │   ├── TopArtists.tsx
+    │   │   ├── RecentlyPlayed.tsx
+    │   │   └── AudioFeatures.tsx
+    │   └── layout/
+    │       ├── Header.tsx
+    │       └── Sidebar.tsx
+    ├── lib/
+    │   ├── spotify.ts (Spotify API client setup)
+    │   └── utils.ts
+    └── types/
+        └── spotify.ts
+  ```
+- [x] Set up environment variables:
+  ```
+  NEXT_PUBLIC_SPOTIFY_CLIENT_ID=
+  NEXT_PUBLIC_REDIRECT_URI=
+  ```
 
 ## Authentication
-- [x] Implement Spotify OAuth2 authentication flow
-- [x] Set up session management with cookies
-- [x] Handle token refresh
-- [x] Create login/logout functionality
+- [x] Implement Spotify OAuth2 using @spotify/web-api-ts-sdk
+- [x] Create Spotify API client wrapper
+- [x] Handle token refresh and session persistence
 
 ## Spotify API Integration
-- [x] Set up Spotify Web API client
+- [x] Set up Spotify Web API client using @spotify/web-api-ts-sdk
 - [x] Implement API endpoints for:
   - [x] User profile data
   - [x] Top tracks (short, medium, long term)
   - [x] Top artists (short, medium, long term)
   - [x] Recently played tracks
-  - [ ] Playlist data
-  - [ ] Audio features for tracks
+  - [x] Audio features for tracks
 
 ## UI Components
 - [x] Design and implement responsive layout
@@ -49,14 +77,12 @@
   - [x] Error states
 
 ## Features
-- [ ] User profile overview
+- [x] User profile overview
 - [x] Top tracks visualization
 - [x] Top artists visualization
 - [x] Recently played tracks
-- [ ] Audio features analysis
+- [x] Audio features analysis
 - [x] Time range selection (short, medium, long term)
-- [ ] Data export functionality
-- [ ] Share functionality
 
 ## Data Visualization
 - [ ] Implement charts and graphs for:
@@ -80,7 +106,7 @@
 - [ ] Test UI components
 
 ## Documentation
-- [x] Create README.md
+- [ ] Create README.md
 - [ ] Document API endpoints
 - [ ] Document component usage
 - [ ] Add setup instructions
