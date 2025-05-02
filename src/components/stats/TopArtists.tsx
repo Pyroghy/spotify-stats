@@ -5,6 +5,8 @@ import { Artist } from "@spotify/web-api-ts-sdk";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from 'next/image';
+import { getTopArtists } from '../../lib/spotify';
+import { useSession } from 'next-auth/react';
 
 const timeRangeOptions = {
     'short_term': 'Last 4 Weeks',
@@ -19,46 +21,32 @@ export function TopArtists() {
     const [artists, setArtists] = useState<Artist[]>([]);
     const [timeRange, setTimeRange] = useState<TimeRange>('medium_term');
     const [loading, setLoading] = useState(true);
+    const { data: session } = useSession();
 
     useEffect(() => {
         const fetchArtists = async () => {
             try {
                 setLoading(true);
-                const accessToken = localStorage.getItem('spotify_access_token');
-                if (!accessToken) return;
-
-                // If timeRange is 'year', we'll fetch more artists and filter them
-                const limit = timeRange === 'year' ? 50 : 20;
+                if (!session?.accessToken || !session?.refreshToken || !session?.expiresAt) return;
                 const actualTimeRange = timeRange === 'year' ? 'long_term' : timeRange;
-
-                const response = await fetch(`https://api.spotify.com/v1/me/top/artists?time_range=${actualTimeRange}&limit=${limit}`, {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch top artists');
-                }
-
-                const data = await response.json();
-                let processedArtists = data.items;
-
+                let artists = await getTopArtists({
+                    accessToken: session.accessToken,
+                    refreshToken: session.refreshToken,
+                    expiresAt: session.expiresAt,
+                }, actualTimeRange);
                 // For year option, we'll just use the top 20 from the larger set
                 if (timeRange === 'year') {
-                    processedArtists = processedArtists.slice(0, 20);
+                    artists = artists.slice(0, 20);
                 }
-
-                setArtists(processedArtists);
+                setArtists(artists.slice(0, 20) as Artist[]);
             } catch (error) {
                 console.error('Error fetching top artists:', error);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchArtists();
-    }, [timeRange]);
+    }, [timeRange, session]);
 
     if (loading) {
         return (

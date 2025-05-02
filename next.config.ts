@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
             allowedOrigins: ["localhost:3000"],
         },
     },
+    images: {
+        domains: ["i.scdn.co"],
+    },
 };
 
 export default nextConfig;

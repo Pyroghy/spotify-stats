@@ -1,101 +1,46 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { Artist, Track } from "@spotify/web-api-ts-sdk";
+import { Track } from "@spotify/web-api-ts-sdk";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useSession } from 'next-auth/react';
+import { formatDuration } from '@/lib/utils';
 
-interface MonthlyData {
-    month: string;
-    tracks: Track[];
-    artists: Artist[];
-    totalMinutes: number;
-}
-
-interface YearlyData {
-    year: string;
-    topArtists: Artist[];
-    topTracks: Track[];
-    totalMinutes: number;
-    genres: { name: string; count: number }[];
-}
+const timeRanges = [
+  { key: 'short_term', label: 'Last 4 Weeks' },
+  { key: 'medium_term', label: 'Last 6 Months' },
+  { key: 'long_term', label: 'All Time' },
+];
 
 export function HistoricalData() {
-    const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
-    const [yearlyData, setYearlyData] = useState<YearlyData[]>([]);
+    const { data: session } = useSession();
+    const [tracksByRange, setTracksByRange] = useState<Record<string, Track[]>>({});
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('yearly');
+    const [activeTab, setActiveTab] = useState('short_term');
 
     useEffect(() => {
-        const fetchHistoricalData = async () => {
+        const fetchData = async () => {
+            if (!session?.accessToken || !session?.refreshToken || !session?.expiresAt) return;
+            setLoading(true);
             try {
-                setLoading(true);
-                const accessToken = localStorage.getItem('spotify_access_token');
-                if (!accessToken) return;
-
-                // Fetch data for different time ranges to simulate historical data
-                const timeRanges = ['short_term', 'medium_term', 'long_term'];
-                const responses = await Promise.all(
-                    timeRanges.map(range =>
-                        fetch(`https://api.spotify.com/v1/me/top/tracks?time_range=${range}&limit=50`, {
-                            headers: { 'Authorization': `Bearer ${accessToken}` }
-                        }).then(res => res.json())
-                    )
-                );
-
-                // Process the data to create historical view
-                // Note: This is a simulation since Spotify API doesn't provide actual historical data
-                const currentDate = new Date();
-                const monthlyDataSimulated = Array.from({ length: 12 }, (_, i) => {
-                    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-                    // Generate a more realistic monthly listening time (between 20-100 hours)
-                    const hours = Math.floor(Math.random() * 80) + 20;
-                    return {
-                        month: date.toLocaleString('default', { month: 'long', year: 'numeric' }),
-                        tracks: responses[Math.floor(i / 4)]?.items || [],
-                        artists: [],
-                        totalMinutes: hours * 60 // Convert hours to minutes
-                    };
-                }).reverse();
-
-                const yearlyDataSimulated = Array.from({ length: 3 }, (_, i) => {
-                    // Generate a more realistic yearly listening time (between 300-1200 hours)
-                    const hours = Math.floor(Math.random() * 900) + 300;
-                    return {
-                        year: String(currentDate.getFullYear() - i),
-                        topArtists: [],
-                        topTracks: responses[i]?.items || [],
-                        totalMinutes: hours * 60, // Convert hours to minutes
-                        genres: [
-                            { name: 'Pop', count: Math.floor(Math.random() * 100) },
-                            { name: 'Rock', count: Math.floor(Math.random() * 100) },
-                            { name: 'Hip Hop', count: Math.floor(Math.random() * 100) }
-                        ]
-                    };
-                }).reverse();
-
-                setMonthlyData(monthlyDataSimulated);
-                setYearlyData(yearlyDataSimulated);
-            } catch (error) {
-                console.error('Error fetching historical data:', error);
+                const results: Record<string, Track[]> = {};
+                for (const { key } of timeRanges) {
+                    const res = await fetch(`/api/spotify/top-tracks?time_range=${key}`, {
+                        headers: { 'Authorization': `Bearer ${session.accessToken}` }
+                    });
+                    const data = await res.json();
+                    results[key] = data.items || [];
+                }
+                setTracksByRange(results);
+            } catch (e) {
+                console.error('Error fetching historical data:', e);
             } finally {
                 setLoading(false);
             }
         };
-
-        fetchHistoricalData();
-    }, []);
-
-    const formatTime = (minutes: number) => {
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) {
-            return `${hours} hours`;
-        }
-        const days = Math.floor(hours / 24);
-        const remainingHours = hours % 24;
-        return `${days}d ${remainingHours}h`;
-    };
+        fetchData();
+    }, [session]);
 
     if (loading) {
         return (
@@ -110,83 +55,34 @@ export function HistoricalData() {
     return (
         <Card>
             <CardContent className="p-6">
+                <div className="mb-4 text-sm text-muted-foreground">
+                    <strong>Note:</strong> Spotify does not provide true historical listening data per month/year. The data below shows your top tracks for each available time range.
+                </div>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className="mb-4">
-                        <TabsTrigger value="yearly">Year over Year</TabsTrigger>
-                        <TabsTrigger value="monthly">Monthly Report</TabsTrigger>
+                        {timeRanges.map(({ key, label }) => (
+                            <TabsTrigger key={key} value={key}>{label}</TabsTrigger>
+                        ))}
                     </TabsList>
-
-                    <TabsContent value="yearly" className="space-y-4">
-                        <div className="h-[400px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={yearlyData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="year" />
-                                    <YAxis 
-                                        label={{ value: 'Time Listened', angle: -90, position: 'insideLeft' }}
-                                        tickFormatter={(value) => formatTime(value)}
-                                    />
-                                    <Tooltip 
-                                        formatter={(value: number) => [formatTime(value), 'Time Listened']}
-                                    />
-                                    <Bar dataKey="totalMinutes" fill="#8884d8" name="Time Listened" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                            {yearlyData.map((year) => (
-                                <div key={year.year} className="p-4 rounded-lg border">
-                                    <h3 className="font-bold text-lg mb-2">{year.year}</h3>
-                                    <div className="space-y-2">
-                                        <p>Total Listening Time: {formatTime(year.totalMinutes)}</p>
-                                        <p>Top Genres:</p>
-                                        <ul className="list-disc list-inside">
-                                            {year.genres.map((genre) => (
-                                                <li key={genre.name}>{genre.name}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
+                    {timeRanges.map(({ key, label }) => {
+                        const tracks = tracksByRange[key] || [];
+                        const totalMs = tracks.reduce((acc, t) => acc + (t.duration_ms || 0), 0);
+                        return (
+                            <TabsContent key={key} value={key} className="space-y-4">
+                                <h3 className="text-lg font-bold mb-2">{label}</h3>
+                                <div className="mb-2">Total Listening Time (Top Tracks): <span className="font-mono">{formatDuration(totalMs)}</span></div>
+                                <div className="space-y-2">
+                                    {tracks.map((track, idx) => (
+                                        <div key={track.id} className="flex items-center gap-4 p-2 border rounded">
+                                            <span className="w-6 text-right text-muted-foreground">{idx + 1}</span>
+                                            <span className="flex-1 truncate">{track.name} <span className="text-xs text-muted-foreground">by {track.artists.map(a => a.name).join(', ')}</span></span>
+                                            <span className="text-xs text-muted-foreground">{formatDuration(track.duration_ms)}</span>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </TabsContent>
-
-                    <TabsContent value="monthly" className="space-y-4">
-                        <div className="h-[400px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={monthlyData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis 
-                                        dataKey="month" 
-                                        angle={-45}
-                                        textAnchor="end"
-                                        height={80}
-                                    />
-                                    <YAxis 
-                                        label={{ value: 'Time Listened', angle: -90, position: 'insideLeft' }}
-                                        tickFormatter={(value) => formatTime(value)}
-                                    />
-                                    <Tooltip 
-                                        formatter={(value: number) => [formatTime(value), 'Time Listened']}
-                                    />
-                                    <Bar dataKey="totalMinutes" fill="#82ca9d" name="Time Listened" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {monthlyData.slice(-3).reverse().map((month) => (
-                                <div key={month.month} className="p-4 rounded-lg border">
-                                    <h3 className="font-bold text-lg mb-2">{month.month}</h3>
-                                    <div className="space-y-2">
-                                        <p>Total Listening Time: {formatTime(month.totalMinutes)}</p>
-                                        <p>Top Tracks: {month.tracks.slice(0, 3).map(track => track.name).join(', ')}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </TabsContent>
+                            </TabsContent>
+                        );
+                    })}
                 </Tabs>
             </CardContent>
         </Card>

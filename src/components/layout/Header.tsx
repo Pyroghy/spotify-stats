@@ -1,109 +1,29 @@
 'use client';
 
+import { signOut, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { initiateAuth } from "@/lib/spotify";
-import Link from "next/link";
-import { useState, useEffect } from "react";
-import { UserProfile } from "@spotify/web-api-ts-sdk";
+import Image from "next/image";
 
 export function Header() {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [user, setUser] = useState<UserProfile | null>(null);
-
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const accessToken = localStorage.getItem('spotify_access_token');
-                if (!accessToken) {
-                    setUser(null);
-                    return;
-                }
-
-                const response = await fetch('https://api.spotify.com/v1/me', {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user profile');
-                }
-
-                const profile = await response.json();
-                setUser(profile);
-            } catch {
-                // Not logged in or token expired
-                setUser(null);
-                localStorage.removeItem('spotify_access_token');
-                localStorage.removeItem('spotify_refresh_token');
-            }
-        };
-
-        checkAuth();
-    }, []);
-
-    const handleLogin = async () => {
-        try {
-            setIsLoading(true);
-            setError(null);
-            await initiateAuth();
-        } catch (error) {
-            console.error('Error during authentication:', error);
-            setError('Failed to login. Please make sure you have set up your Spotify app correctly.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleLogout = () => {
-        // Clear all Spotify related data from localStorage
-        localStorage.removeItem('spotify_access_token');
-        localStorage.removeItem('spotify_refresh_token');
-        localStorage.removeItem('spotify_code_verifier');
-        // Reset user state
-        setUser(null);
-        // Reset error state
-        setError(null);
-        // Redirect to home page
-        window.location.href = '/';
-    };
+    const { data: session } = useSession();
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container mx-auto px-4 max-w-7xl">
-                <div className="flex h-16 items-center justify-between">
-                    <Link className="flex items-center space-x-2" href="/">
-                        <span className="text-xl font-bold">Spotify Stats</span>
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        {error && (
-                            <span className="text-sm text-red-500">{error}</span>
-                        )}
-                        {user ? (
-                            <div className="flex items-center gap-4">
-                                <span className="text-sm">
-                                    Logged in as {user.display_name}
-                                </span>
-                                <Button 
-                                    onClick={handleLogout} 
-                                    variant="outline"
-                                    className="font-medium"
-                                >
-                                    Logout
-                                </Button>
-                            </div>
-                        ) : (
-                            <Button 
-                                onClick={handleLogin} 
-                                variant="default"
-                                disabled={isLoading}
-                                className="font-medium"
-                            >
-                                {isLoading ? 'Logging in...' : 'Login with Spotify'}
-                            </Button>
-                        )}
-                    </div>
+        <header className="border-b">
+            <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+                <h1 className="text-2xl font-bold">Spotify Stats</h1>
+                <div className="flex items-center gap-4">
+                    {session?.user?.image && (
+                        <Image
+                            src={session.user.image}
+                            alt={session.user.name || "User"}
+                            className="w-8 h-8 rounded-full"
+                            width={32}
+                            height={32}
+                        />
+                    )}
+                    <Button variant="outline" onClick={() => signOut()}>
+                        Sign Out
+                    </Button>
                 </div>
             </div>
         </header>

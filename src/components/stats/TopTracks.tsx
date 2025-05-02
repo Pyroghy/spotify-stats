@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { Track } from "@spotify/web-api-ts-sdk";
 import { formatDuration } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from 'next/image';
+import { getTopTracks } from '@/lib/spotify';
+import type { Track } from '@spotify/web-api-ts-sdk';
+import { useSession } from 'next-auth/react';
 
 const timeRangeOptions = {
     'short_term': 'Last 4 Weeks',
@@ -20,51 +22,39 @@ export function TopTracks() {
     const [tracks, setTracks] = useState<Track[]>([]);
     const [timeRange, setTimeRange] = useState<TimeRange>('short_term');
     const [loading, setLoading] = useState(true);
+    const { data: session } = useSession();
 
     useEffect(() => {
         const fetchTracks = async () => {
             try {
                 setLoading(true);
-                const accessToken = localStorage.getItem('spotify_access_token');
-                if (!accessToken) return;
-
-                // If timeRange is 'year', we'll fetch more tracks and filter them
-                const limit = timeRange === 'year' ? 50 : 20;
+                if (!session?.accessToken || !session?.refreshToken || !session?.expiresAt) return;
                 const actualTimeRange = timeRange === 'year' ? 'long_term' : timeRange;
-
-                const response = await fetch(`https://api.spotify.com/v1/me/top/tracks?time_range=${actualTimeRange}&limit=${limit}`, {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch top tracks');
-                }
-
-                const data = await response.json();
-                let processedTracks = data.items;
-
+                let tracks = await getTopTracks({
+                    accessToken: session.accessToken,
+                    refreshToken: session.refreshToken,
+                    expiresAt: session.expiresAt,
+                }, actualTimeRange);
                 // For year option, filter tracks released in the last year
                 if (timeRange === 'year') {
                     const oneYearAgo = new Date();
                     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-                    processedTracks = processedTracks.filter((track: Track) => {
-                        const releaseDate = new Date(track.album.release_date);
+                    tracks = tracks.filter((track: Track) => {
+                        const releaseDate = new Date(track.album.release_date || '');
                         return releaseDate >= oneYearAgo;
                     }).slice(0, 20);
+                } else {
+                    tracks = tracks.slice(0, 20);
                 }
-
-                setTracks(processedTracks);
+                setTracks(tracks as Track[]);
             } catch (error) {
                 console.error('Error fetching top tracks:', error);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchTracks();
-    }, [timeRange]);
+    }, [timeRange, session]);
 
     if (loading) {
         return (
@@ -129,7 +119,7 @@ export function TopTracks() {
                             <div className="flex-1 min-w-0">
                                 <div className="font-medium truncate">{track.name}</div>
                                 <div className="text-sm text-muted-foreground truncate">
-                                    {track.artists.map(artist => artist.name).join(', ')}
+                                    {track.artists.map((artist: { name: string }) => artist.name).join(', ')}
                                 </div>
                             </div>
                             <div className="text-sm text-muted-foreground whitespace-nowrap">

@@ -10,6 +10,71 @@
 - [x] Time range selection (4 weeks, 6 months, all time)
 - [x] Sorting options for tracks and artists
 
+## Bug Fixes & Improvements
+- [ ] Fix time display:
+  - [ ] Convert total listening time from days to hours
+  - [ ] Fix broken total listening time calculation
+- [ ] Fix broken sections:
+  - [ ] Fix Recently Played section functionality
+  - [ ] Fix Audio Features section functionality
+- [ ] Fix Genres section:
+  - [ ] Fix missing images
+  - [ ] Fix limited display (currently only shows 3 options)
+  - [ ] Debug and fix underlying genre data issues
+- [ ] Enhance Historical Data:
+  - [ ] Add more detailed historical analysis
+  - [ ] Improve data visualization and insights
+- [ ] Add Artist Details:
+  - [ ] Implement clickable artist cards
+  - [ ] Add artist information page
+  - [ ] Show artist statistics and related data
+
+## Additional Stats Pages
+- [ ] Listening Habits:
+  - [ ] Time of day analysis
+  - [ ] Day of week patterns
+  - [ ] Seasonal listening trends
+  - [ ] Listening streak tracking
+- [ ] Track Analysis:
+  - [ ] Tempo and key distribution
+  - [ ] Popularity vs. obscurity
+  - [ ] Language distribution
+  - [ ] Song length preferences
+- [ ] Artist Insights:
+  - [ ] Artist location map
+  - [ ] New vs. established artists
+  - [ ] Artist collaboration network
+  - [ ] Record label distribution
+- [ ] Genre Deep Dive:
+  - [ ] Genre mood analysis
+  - [ ] Genre diversity score
+  - [ ] Sub-genre breakdown
+  - [ ] Genre correlation analysis
+- [ ] Playlist Analytics:
+  - [ ] Playlist mood analysis
+  - [ ] Playlist diversity score
+  - [ ] Most common additions
+  - [ ] Playlist length distribution
+
+## Performance Improvements
+- [ ] API Optimization:
+  - [ ] Implement request batching for multiple API calls
+  - [ ] Add request caching with appropriate TTL
+  - [ ] Optimize token refresh mechanism
+- [ ] Frontend Performance:
+  - [ ] Implement virtual scrolling for long lists
+  - [ ] Add image lazy loading
+  - [ ] Optimize component re-renders
+  - [ ] Implement proper loading states
+- [ ] Data Management:
+  - [ ] Add local storage caching for frequently accessed data
+  - [ ] Implement data prefetching for common user flows
+  - [ ] Add data compression for large datasets
+- [ ] Error Handling:
+  - [ ] Implement retry mechanisms for failed API calls
+  - [ ] Add fallback data for offline mode
+  - [ ] Improve error recovery strategies
+
 ## Nice to Have (Post-MVP)
 - [ ] Audio features analysis
 - [ ] Playlist data
