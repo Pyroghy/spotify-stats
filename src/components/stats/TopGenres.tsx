@@ -64,20 +64,24 @@ export function TopGenres() {
                         if (!genreArtists.has(genre)) {
                             genreArtists.set(genre, []);
                         }
-                        genreArtists.get(genre)?.push(artist);
+                        const artistsForGenre = genreArtists.get(genre);
+                        if (artistsForGenre && !artistsForGenre.find(a => a.id === artist.id)) {
+                            artistsForGenre.push(artist);
+                        }
                     });
                 });
 
                 // Convert to array and sort
+                const totalArtists = artists.length;
                 const sortedGenres = Array.from(genreArtists.entries())
                     .map(([name, artistList]) => ({
                         name: name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
                         count: artistList.length,
-                        percentage: (artistList.length / artists.length) * 100,
+                        percentage: (artistList.length / totalArtists) * 100,
                         artists: artistList.slice(0, 4) // Keep top 4 artists for each genre
                     }))
                     .sort((a, b) => b.count - a.count)
-                    .slice(0, 10);
+                    .slice(0, 10); // Show top 10 genres
 
                 setGenres(sortedGenres);
             } catch (error) {
@@ -92,7 +96,7 @@ export function TopGenres() {
 
     if (loading) {
         return (
-            <Card className="w-full">
+            <Card className="w-full col-span-2">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Top Genres</CardTitle>
                     <div className="h-10 w-[180px] animate-pulse bg-muted rounded" />
@@ -122,7 +126,7 @@ export function TopGenres() {
     }
 
     return (
-        <Card className="w-full">
+        <Card className="w-full col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Top Genres</CardTitle>
                 <Select value={timeRange} onValueChange={(value: TimeRange) => setTimeRange(value)}>
@@ -137,31 +141,33 @@ export function TopGenres() {
                 </Select>
             </CardHeader>
             <CardContent>
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {genres.map((genre, index) => (
                         <div key={genre.name} className="space-y-2">
                             <div className="flex items-center space-x-4 p-2 rounded-lg hover:bg-accent transition-colors">
                                 <span className="text-muted-foreground w-8 text-right">{index + 1}</span>
                                 <div className="flex-1 min-w-0">
                                     <div className="font-medium truncate">{genre.name}</div>
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                    {genre.percentage.toFixed(1)}%
+                                    <div className="text-sm text-muted-foreground">
+                                        {genre.percentage.toFixed(1)}% of your top artists
+                                    </div>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-4 gap-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                 {genre.artists.map((artist) => (
                                     <div key={artist.id} className="relative aspect-square rounded-md overflow-hidden group">
-                                        <Image
-                                            src={artist.images[0]?.url}
-                                            alt={artist.name}
-                                            fill
-                                            className="object-cover transition-transform group-hover:scale-105"
-                                            sizes="(max-width: 768px) 25vw, 20vw"
-                                            unoptimized
-                                        />
+                                        {artist.images[0]?.url && (
+                                            <Image
+                                                src={artist.images[0].url}
+                                                alt={artist.name}
+                                                fill
+                                                className="object-cover transition-transform group-hover:scale-105"
+                                                sizes="(max-width: 768px) 25vw, 20vw"
+                                                unoptimized
+                                            />
+                                        )}
                                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-end">
-                                            <span className="text-white p-2 text-sm opacity-0 group-hover:opacity-100 transition-opacity truncate">
+                                            <span className="text-white p-2 text-sm opacity-0 group-hover:opacity-100 transition-opacity truncate w-full">
                                                 {artist.name}
                                             </span>
                                         </div>

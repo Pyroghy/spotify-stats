@@ -49,25 +49,31 @@ export function HistoricalData() {
                 const currentDate = new Date();
                 const monthlyDataSimulated = Array.from({ length: 12 }, (_, i) => {
                     const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                    // Generate a more realistic monthly listening time (between 20-100 hours)
+                    const hours = Math.floor(Math.random() * 80) + 20;
                     return {
                         month: date.toLocaleString('default', { month: 'long', year: 'numeric' }),
                         tracks: responses[Math.floor(i / 4)]?.items || [],
                         artists: [],
-                        totalMinutes: Math.floor(Math.random() * 2000 + 1000) // Simulated listening time
+                        totalMinutes: hours * 60 // Convert hours to minutes
                     };
                 }).reverse();
 
-                const yearlyDataSimulated = Array.from({ length: 3 }, (_, i) => ({
-                    year: String(currentDate.getFullYear() - i),
-                    topArtists: [],
-                    topTracks: responses[i]?.items || [],
-                    totalMinutes: Math.floor(Math.random() * 24000 + 12000),
-                    genres: [
-                        { name: 'Pop', count: Math.floor(Math.random() * 100) },
-                        { name: 'Rock', count: Math.floor(Math.random() * 100) },
-                        { name: 'Hip Hop', count: Math.floor(Math.random() * 100) }
-                    ]
-                })).reverse();
+                const yearlyDataSimulated = Array.from({ length: 3 }, (_, i) => {
+                    // Generate a more realistic yearly listening time (between 300-1200 hours)
+                    const hours = Math.floor(Math.random() * 900) + 300;
+                    return {
+                        year: String(currentDate.getFullYear() - i),
+                        topArtists: [],
+                        topTracks: responses[i]?.items || [],
+                        totalMinutes: hours * 60, // Convert hours to minutes
+                        genres: [
+                            { name: 'Pop', count: Math.floor(Math.random() * 100) },
+                            { name: 'Rock', count: Math.floor(Math.random() * 100) },
+                            { name: 'Hip Hop', count: Math.floor(Math.random() * 100) }
+                        ]
+                    };
+                }).reverse();
 
                 setMonthlyData(monthlyDataSimulated);
                 setYearlyData(yearlyDataSimulated);
@@ -80,6 +86,16 @@ export function HistoricalData() {
 
         fetchHistoricalData();
     }, []);
+
+    const formatTime = (minutes: number) => {
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) {
+            return `${hours} hours`;
+        }
+        const days = Math.floor(hours / 24);
+        const remainingHours = hours % 24;
+        return `${days}d ${remainingHours}h`;
+    };
 
     if (loading) {
         return (
@@ -106,9 +122,14 @@ export function HistoricalData() {
                                 <BarChart data={yearlyData}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="year" />
-                                    <YAxis label={{ value: 'Minutes Listened', angle: -90, position: 'insideLeft' }} />
-                                    <Tooltip />
-                                    <Bar dataKey="totalMinutes" fill="#8884d8" name="Total Minutes" />
+                                    <YAxis 
+                                        label={{ value: 'Time Listened', angle: -90, position: 'insideLeft' }}
+                                        tickFormatter={(value) => formatTime(value)}
+                                    />
+                                    <Tooltip 
+                                        formatter={(value: number) => [formatTime(value), 'Time Listened']}
+                                    />
+                                    <Bar dataKey="totalMinutes" fill="#8884d8" name="Time Listened" />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -118,7 +139,7 @@ export function HistoricalData() {
                                 <div key={year.year} className="p-4 rounded-lg border">
                                     <h3 className="font-bold text-lg mb-2">{year.year}</h3>
                                     <div className="space-y-2">
-                                        <p>Total Listening Time: {Math.floor(year.totalMinutes / 60)} hours</p>
+                                        <p>Total Listening Time: {formatTime(year.totalMinutes)}</p>
                                         <p>Top Genres:</p>
                                         <ul className="list-disc list-inside">
                                             {year.genres.map((genre) => (
@@ -142,9 +163,14 @@ export function HistoricalData() {
                                         textAnchor="end"
                                         height={80}
                                     />
-                                    <YAxis label={{ value: 'Minutes Listened', angle: -90, position: 'insideLeft' }} />
-                                    <Tooltip />
-                                    <Bar dataKey="totalMinutes" fill="#82ca9d" name="Total Minutes" />
+                                    <YAxis 
+                                        label={{ value: 'Time Listened', angle: -90, position: 'insideLeft' }}
+                                        tickFormatter={(value) => formatTime(value)}
+                                    />
+                                    <Tooltip 
+                                        formatter={(value: number) => [formatTime(value), 'Time Listened']}
+                                    />
+                                    <Bar dataKey="totalMinutes" fill="#82ca9d" name="Time Listened" />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -154,7 +180,7 @@ export function HistoricalData() {
                                 <div key={month.month} className="p-4 rounded-lg border">
                                     <h3 className="font-bold text-lg mb-2">{month.month}</h3>
                                     <div className="space-y-2">
-                                        <p>Total Listening Time: {Math.floor(month.totalMinutes / 60)} hours</p>
+                                        <p>Total Listening Time: {formatTime(month.totalMinutes)}</p>
                                         <p>Top Tracks: {month.tracks.slice(0, 3).map(track => track.name).join(', ')}</p>
                                     </div>
                                 </div>

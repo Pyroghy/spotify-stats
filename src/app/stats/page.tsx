@@ -7,6 +7,7 @@ import { TopGenres } from "@/components/stats/TopGenres";
 import { RecentlyPlayed } from "@/components/stats/RecentlyPlayed";
 import { AudioFeatures } from "@/components/stats/AudioFeatures";
 import { HistoricalData } from "@/components/stats/HistoricalData";
+import { LifetimeStats } from "@/components/stats/LifetimeStats";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -49,8 +50,14 @@ export default function StatsPage() {
             <Header />
             <main className="container mx-auto py-8 px-4 max-w-7xl">
                 <div className="space-y-8">
-                    {/* Three-column layout for top tracks, artists, and genres */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Lifetime Stats Section */}
+                    <section>
+                        <h2 className="text-3xl font-bold mb-6">Lifetime Overview</h2>
+                        <LifetimeStats />
+                    </section>
+
+                    {/* Two-column layout for top tracks and artists */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <section>
                             <h2 className="text-3xl font-bold mb-6">Your Top Tracks</h2>
                             <TopTracks />
@@ -60,8 +67,11 @@ export default function StatsPage() {
                             <h2 className="text-3xl font-bold mb-6">Your Top Artists</h2>
                             <TopArtists />
                         </section>
+                    </div>
 
-                        <section>
+                    {/* Full-width genres section */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <section className="md:col-span-2">
                             <h2 className="text-3xl font-bold mb-6">Your Top Genres</h2>
                             <TopGenres />
                         </section>
