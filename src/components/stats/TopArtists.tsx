@@ -113,6 +113,7 @@ export function TopArtists() {
                                         fill
                                         className="rounded-full object-cover"
                                         sizes="48px"
+                                        unoptimized
                                     />
                                 </div>
                             ) : (

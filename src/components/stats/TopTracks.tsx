@@ -18,7 +18,7 @@ type TimeRange = keyof typeof timeRangeOptions;
 
 export function TopTracks() {
     const [tracks, setTracks] = useState<Track[]>([]);
-    const [timeRange, setTimeRange] = useState<TimeRange>('medium_term');
+    const [timeRange, setTimeRange] = useState<TimeRange>('short_term');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -120,6 +120,7 @@ export function TopTracks() {
                                         fill
                                         className="rounded-md object-cover"
                                         sizes="48px"
+                                        unoptimized
                                     />
                                 </div>
                             ) : (
