@@ -3,8 +3,10 @@
 import { Header } from "@/components/layout/Header";
 import { TopTracks } from "@/components/stats/TopTracks";
 import { TopArtists } from "@/components/stats/TopArtists";
+import { TopGenres } from "@/components/stats/TopGenres";
 import { RecentlyPlayed } from "@/components/stats/RecentlyPlayed";
 import { AudioFeatures } from "@/components/stats/AudioFeatures";
+import { HistoricalData } from "@/components/stats/HistoricalData";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -47,8 +49,8 @@ export default function StatsPage() {
             <Header />
             <main className="container mx-auto py-8 px-4 max-w-7xl">
                 <div className="space-y-8">
-                    {/* Two-column layout for top tracks and artists */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Three-column layout for top tracks, artists, and genres */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <section>
                             <h2 className="text-3xl font-bold mb-6">Your Top Tracks</h2>
                             <TopTracks />
@@ -58,9 +60,20 @@ export default function StatsPage() {
                             <h2 className="text-3xl font-bold mb-6">Your Top Artists</h2>
                             <TopArtists />
                         </section>
+
+                        <section>
+                            <h2 className="text-3xl font-bold mb-6">Your Top Genres</h2>
+                            <TopGenres />
+                        </section>
                     </div>
                     
-                    {/* Full-width sections below */}
+                    {/* Historical Data Section */}
+                    <section>
+                        <h2 className="text-3xl font-bold mb-6">Historical Data</h2>
+                        <HistoricalData />
+                    </section>
+
+                    {/* Other sections */}
                     <section>
                         <h2 className="text-3xl font-bold mb-6">Recently Played</h2>
                         <RecentlyPlayed />

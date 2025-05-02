@@ -132,4 +132,105 @@
 - [ ] Implement recommendations based on listening history
 - [ ] Add social sharing features
 - [ ] Create user profiles with public stats
-- [ ] Add comparison features between different time periods 
+- [ ] Add comparison features between different time periods
+
+# Spotify Stats - Future Features
+
+## Listening Analysis
+- [ ] Time of day listening patterns with heatmap visualization
+- [ ] Day of week analysis showing peak listening times
+- [ ] Seasonal trends analysis
+- [ ] Work hours vs leisure hours listening comparison
+- [ ] Listening streak tracking (consecutive days)
+- [ ] Total listening time milestones and achievements
+
+## Genre Analysis
+- [ ] Genre mood analysis using Spotify's audio features
+- [ ] Genre popularity trends over time
+- [ ] Genre diversity score
+- [ ] Genre-based recommendations
+- [ ] Genre geography map (showing where your music comes from)
+- [ ] Sub-genre breakdown and discovery
+- [ ] Genre correlation analysis (which genres you often listen to together)
+
+## Track Analysis
+- [ ] Tempo distribution with interactive histogram
+- [ ] Key signature distribution and music theory insights
+- [ ] Popularity vs. Obscurity ratio
+- [ ] Language distribution of tracks
+- [ ] Lyrics analysis and word clouds
+- [ ] Song length preferences analysis
+- [ ] Explicit vs clean content ratio
+- [ ] Release date distribution of favorite tracks
+
+## Artist Deep Dive
+- [ ] Artist location map
+- [ ] New vs. established artists ratio
+- [ ] Artist collaboration network visualization
+- [ ] Artist gender distribution
+- [ ] Record label distribution
+- [ ] Artist popularity trends
+- [ ] Concert/Tour tracking for favorite artists
+- [ ] Similar artist recommendations
+
+## Playlist Analysis
+- [ ] Playlist mood analysis
+- [ ] Playlist diversity score
+- [ ] Most common playlist additions
+- [ ] Playlist length distribution
+- [ ] Collaborative vs. personal playlist stats
+- [ ] Playlist sharing and compatibility
+- [ ] Smart playlist suggestions
+- [ ] Playlist health check (dead links, duplicates)
+
+## Social Features
+- [ ] Music taste compatibility with friends
+- [ ] Shared artist/track statistics
+- [ ] Music taste uniqueness score
+- [ ] Friend activity feed
+- [ ] Collaborative listening sessions
+- [ ] Music taste tribes/groups
+- [ ] Social challenges and competitions
+- [ ] Share cards for social media
+
+## Historical Data
+- [x] Year-over-year comparisons
+- [x] Monthly listening reports
+- [ ] "Discovered On" dates for artists/tracks
+- [ ] First listen timestamps
+- [ ] Listening history timeline
+- [ ] Music taste evolution analysis
+- [ ] Nostalgia playlists generator
+- [ ] Historical trends visualization
+
+## Technical Improvements
+- [ ] Offline mode support
+- [ ] Data export functionality
+- [ ] Custom date range selection
+- [ ] Better error handling
+- [ ] Loading state improvements
+- [ ] Mobile responsive optimizations
+- [ ] PWA support
+- [ ] Dark/Light theme toggle
+- [ ] Accessibility improvements
+- [ ] Performance optimizations
+
+## Integration Features
+- [ ] Last.fm integration for historical data
+- [ ] Apple Music data import
+- [ ] YouTube Music data import
+- [ ] Concert ticket integration (Songkick/Bandsintown)
+- [ ] Lyrics integration (Genius/Musixmatch)
+- [ ] Music news integration
+- [ ] Local music library analysis
+- [ ] Discord rich presence integration
+
+## Premium Features
+- [ ] Advanced analytics
+- [ ] Extended historical data
+- [ ] Custom reports
+- [ ] API access
+- [ ] Data backup
+- [ ] Priority feature requests
+- [ ] Ad-free experience
+- [ ] Enhanced social features 
