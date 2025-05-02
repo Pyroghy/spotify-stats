@@ -71,37 +71,39 @@ export function Header() {
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-14 items-center">
-                <div className="mr-4 flex">
-                    <Link className="mr-6 flex items-center space-x-2" href="/">
-                        <span className="font-bold">Spotify Stats</span>
+            <div className="container mx-auto px-4 max-w-7xl">
+                <div className="flex h-16 items-center justify-between">
+                    <Link className="flex items-center space-x-2" href="/">
+                        <span className="text-xl font-bold">Spotify Stats</span>
                     </Link>
-                </div>
-                <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-                    {error && (
-                        <span className="text-sm text-red-500 mr-4">{error}</span>
-                    )}
-                    {user ? (
-                        <div className="flex items-center gap-4">
-                            <span className="text-sm">
-                                Logged in as {user.display_name}
-                            </span>
+                    <div className="flex items-center gap-4">
+                        {error && (
+                            <span className="text-sm text-red-500">{error}</span>
+                        )}
+                        {user ? (
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm">
+                                    Logged in as {user.display_name}
+                                </span>
+                                <Button 
+                                    onClick={handleLogout} 
+                                    variant="outline"
+                                    className="font-medium"
+                                >
+                                    Logout
+                                </Button>
+                            </div>
+                        ) : (
                             <Button 
-                                onClick={handleLogout} 
-                                variant="outline"
+                                onClick={handleLogin} 
+                                variant="default"
+                                disabled={isLoading}
+                                className="font-medium"
                             >
-                                Logout
+                                {isLoading ? 'Logging in...' : 'Login with Spotify'}
                             </Button>
-                        </div>
-                    ) : (
-                        <Button 
-                            onClick={handleLogin} 
-                            variant="default"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? 'Logging in...' : 'Login with Spotify'}
-                        </Button>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
         </header>
