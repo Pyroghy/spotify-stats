@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
     const searchParams = new URL(request.url).searchParams;
     const code = searchParams.get('code');
+    const state = searchParams.get('state'); // This is our code verifier
     const error = searchParams.get('error');
 
     if (error) {
@@ -13,6 +14,11 @@ export async function GET(request: Request) {
     if (!code) {
         console.error('No authorization code received');
         return NextResponse.redirect(new URL('/?error=no_code', request.url));
+    }
+
+    if (!state) {
+        console.error('No state parameter received');
+        return NextResponse.redirect(new URL('/?error=no_state', request.url));
     }
 
     try {
@@ -34,6 +40,7 @@ export async function GET(request: Request) {
                 code,
                 grant_type: 'authorization_code',
                 redirect_uri: process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI,
+                code_verifier: state, // Use the state as the code verifier
             }),
         });
 
