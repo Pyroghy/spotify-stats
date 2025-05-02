@@ -7,16 +7,20 @@ import { formatDuration } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from 'next/image';
 
-export function RecentlyPlayed() {
+interface RecentlyPlayedProps {
+    accessToken: string;
+}
+
+export function RecentlyPlayed({ accessToken }: RecentlyPlayedProps) {
     const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchRecentlyPlayed = async () => {
+        const fetchTracks = async () => {
             try {
                 setLoading(true);
-                const data = await getRecentlyPlayed();
-                setTracks(data.map(item => item.track));
+                const data = await getRecentlyPlayed(accessToken);
+                setTracks(data);
             } catch (error) {
                 console.error('Error fetching recently played tracks:', error);
             } finally {
@@ -24,8 +28,8 @@ export function RecentlyPlayed() {
             }
         };
 
-        fetchRecentlyPlayed();
-    }, []);
+        fetchTracks();
+    }, [accessToken]);
 
     if (loading) {
         return <div>Loading...</div>;
