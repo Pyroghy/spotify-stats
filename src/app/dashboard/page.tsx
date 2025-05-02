@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRouter } from 'next/navigation'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import Image from 'next/image'
 
 interface SpotifyUser {
     display_name: string
@@ -11,29 +14,73 @@ interface SpotifyUser {
     images?: { url: string }[]
 }
 
+interface SpotifyTrack {
+    id: string
+    name: string
+    artists: { name: string }[]
+    album: {
+        name: string
+        images: { url: string }[]
+    }
+}
+
+interface SpotifyArtist {
+    id: string
+    name: string
+    images: { url: string }[]
+    genres: string[]
+}
+
+interface SpotifyPlayHistory {
+    track: SpotifyTrack
+    played_at: string
+}
+
+type TimeRange = 'short_term' | 'medium_term' | 'long_term' | 'one_year';
+
 export default function Dashboard() {
     const [user, setUser] = useState<SpotifyUser | null>(null)
+    const [topTracks, setTopTracks] = useState<SpotifyTrack[]>([])
+    const [topArtists, setTopArtists] = useState<SpotifyArtist[]>([])
+    const [recentlyPlayed, setRecentlyPlayed] = useState<SpotifyPlayHistory[]>([])
+    const [timeRange, setTimeRange] = useState<TimeRange>('medium_term')
     const [loading, setLoading] = useState(true)
     const router = useRouter()
 
     useEffect(() => {
-        async function fetchUserProfile() {
+        async function fetchData() {
             try {
-                const response = await fetch('/api/auth/me')
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user profile')
+                const [userResponse, tracksResponse, artistsResponse, recentResponse] = await Promise.all([
+                    fetch('/api/auth/me'),
+                    fetch(`/api/spotify/top-tracks?time_range=${timeRange}`),
+                    fetch(`/api/spotify/top-artists?time_range=${timeRange}`),
+                    fetch('/api/spotify/recently-played')
+                ]);
+
+                if (!userResponse.ok || !tracksResponse.ok || !artistsResponse.ok || !recentResponse.ok) {
+                    throw new Error('Failed to fetch data');
                 }
-                const data = await response.json()
-                setUser(data)
+
+                const [userData, tracksData, artistsData, recentData] = await Promise.all([
+                    userResponse.json(),
+                    tracksResponse.json(),
+                    artistsResponse.json(),
+                    recentResponse.json()
+                ]);
+
+                setUser(userData);
+                setTopTracks(tracksData.items || tracksData);
+                setTopArtists(artistsData.items || artistsData);
+                setRecentlyPlayed(recentData.items || recentData);
             } catch (error) {
-                console.error('Error fetching user profile:', error)
+                console.error('Error fetching data:', error);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
         }
 
-        fetchUserProfile()
-    }, [])
+        fetchData();
+    }, [timeRange]);
 
     const handleLogout = async () => {
         try {
@@ -42,6 +89,13 @@ export default function Dashboard() {
         } catch (error) {
             console.error('Error logging out:', error)
         }
+    }
+
+    const timeRangeLabels = {
+        short_term: 'Last 4 Weeks',
+        medium_term: 'Last 6 Months',
+        long_term: 'All Time',
+        one_year: 'Last Year'
     }
 
     if (loading) {
@@ -107,10 +161,12 @@ export default function Dashboard() {
                     <CardContent className="space-y-4">
                         <div className="flex items-center gap-4">
                             {user.images?.[0]?.url && (
-                                <img
+                                <Image
                                     src={user.images[0].url}
                                     alt={user.display_name}
-                                    className="w-16 h-16 rounded-full"
+                                    width={64}
+                                    height={64}
+                                    className="rounded-full"
                                 />
                             )}
                             <div>
@@ -120,6 +176,120 @@ export default function Dashboard() {
                         </div>
                     </CardContent>
                 </Card>
+
+                <div className="flex justify-end">
+                    <Select value={timeRange} onValueChange={(value: TimeRange) => setTimeRange(value)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select time range" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="short_term">Last 4 Weeks</SelectItem>
+                            <SelectItem value="medium_term">Last 6 Months</SelectItem>
+                            <SelectItem value="one_year">Last Year</SelectItem>
+                            <SelectItem value="long_term">All Time</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <Tabs defaultValue="top-tracks" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="top-tracks">Top Tracks</TabsTrigger>
+                        <TabsTrigger value="top-artists">Top Artists</TabsTrigger>
+                        <TabsTrigger value="recently-played">Recently Played</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="top-tracks">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Your Top Tracks</CardTitle>
+                                <CardDescription>Your most listened to tracks ({timeRangeLabels[timeRange]})</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {topTracks.map((track, index) => (
+                                        <div key={track.id} className="flex items-center gap-4">
+                                            <div className="text-muted-foreground w-6">{index + 1}</div>
+                                            <Image
+                                                src={track.album.images[2]?.url}
+                                                alt={track.album.name}
+                                                width={48}
+                                                height={48}
+                                                className="rounded"
+                                            />
+                                            <div>
+                                                <div className="font-medium">{track.name}</div>
+                                                <div className="text-sm text-muted-foreground">
+                                                    {track.artists.map(a => a.name).join(', ')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="top-artists">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Your Top Artists</CardTitle>
+                                <CardDescription>Your most listened to artists ({timeRangeLabels[timeRange]})</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {topArtists.map((artist, index) => (
+                                        <div key={artist.id} className="flex items-center gap-4">
+                                            <div className="text-muted-foreground w-6">{index + 1}</div>
+                                            <Image
+                                                src={artist.images[2]?.url}
+                                                alt={artist.name}
+                                                width={48}
+                                                height={48}
+                                                className="rounded-full"
+                                            />
+                                            <div>
+                                                <div className="font-medium">{artist.name}</div>
+                                                <div className="text-sm text-muted-foreground">
+                                                    {artist.genres.slice(0, 3).join(', ')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="recently-played">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Recently Played</CardTitle>
+                                <CardDescription>Your recently played tracks</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {recentlyPlayed.map((item, index) => (
+                                        <div key={index} className="flex items-center gap-4">
+                                            <Image
+                                                src={item.track.album.images[2]?.url}
+                                                alt={item.track.album.name}
+                                                width={48}
+                                                height={48}
+                                                className="rounded"
+                                            />
+                                            <div>
+                                                <div className="font-medium">{item.track.name}</div>
+                                                <div className="text-sm text-muted-foreground">
+                                                    {item.track.artists.map(a => a.name).join(', ')}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground">
+                                                    {new Date(item.played_at).toLocaleString()}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
             </div>
         </main>
     )
