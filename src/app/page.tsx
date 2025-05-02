@@ -2,20 +2,36 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function Home() {
+    const searchParams = useSearchParams()
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        const errorParam = searchParams.get('error')
+        if (errorParam) {
+            setError('Authentication failed. Please try again.')
+        }
+    }, [searchParams])
+
     const handleSpotifyLogin = async () => {
         try {
             const response = await fetch('/api/auth/spotify');
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error('Failed to get authorization URL');
+            }
             
+            const data = await response.json();
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                console.error('No authorization URL received');
+                setError('No authorization URL received. Please try again.');
             }
         } catch (error) {
             console.error('Error getting Spotify authorization URL:', error);
+            setError('Failed to start authentication. Please try again.');
         }
     }
 
@@ -36,7 +52,12 @@ export default function Home() {
                             Connect your Spotify account to view your listening statistics
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
+                        {error && (
+                            <div className="text-sm text-red-500">
+                                {error}
+                            </div>
+                        )}
                         <Button
                             className="w-full"
                             size="lg"

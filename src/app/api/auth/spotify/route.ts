@@ -23,6 +23,9 @@ export async function GET() {
         return NextResponse.json({ url: authUrl.toString() });
     } catch (error) {
         console.error('Error creating authorization URL:', error);
-        return NextResponse.json({ error: 'Failed to create authorization URL' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Failed to create authorization URL' },
+            { status: 500 }
+        );
     }
 } 
