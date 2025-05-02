@@ -140,42 +140,27 @@ export default function Dashboard() {
         <main className="container mx-auto p-4">
             <div className="flex flex-col gap-8">
                 <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-                        <p className="text-muted-foreground mt-2">
-                            Welcome back, {user.display_name}!
-                        </p>
+                    <div className="flex items-center gap-4">
+                        {user.images?.[0]?.url && (
+                            <Image
+                                src={user.images[0].url}
+                                alt={user.display_name}
+                                width={48}
+                                height={48}
+                                className="rounded-full"
+                            />
+                        )}
+                        <div>
+                            <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+                            <p className="text-muted-foreground">
+                                Welcome back, {user.display_name}!
+                            </p>
+                        </div>
                     </div>
                     <Button variant="outline" onClick={handleLogout}>
                         Logout
                     </Button>
                 </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Your Profile</CardTitle>
-                        <CardDescription>
-                            Your Spotify account information
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            {user.images?.[0]?.url && (
-                                <Image
-                                    src={user.images[0].url}
-                                    alt={user.display_name}
-                                    width={64}
-                                    height={64}
-                                    className="rounded-full"
-                                />
-                            )}
-                            <div>
-                                <h3 className="text-lg font-semibold">{user.display_name}</h3>
-                                <p className="text-muted-foreground">{user.email}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
 
                 <div className="flex justify-end">
                     <Select value={timeRange} onValueChange={(value: TimeRange) => setTimeRange(value)}>
