@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Image from 'next/image'
+import { SpotifyApi } from '@spotify/web-api-ts-sdk'
 
 interface SpotifyUser {
     display_name: string
@@ -50,52 +51,50 @@ export default function Dashboard() {
     useEffect(() => {
         async function fetchData() {
             try {
-                // Try to fetch user data first
-                const userResponse = await fetch('/api/auth/me');
+                const accessToken = document.cookie.split('; ')
+                    .find(row => row.startsWith('spotify_access_token='))
+                    ?.split('=')[1];
 
-                // If unauthorized, try to refresh the token
-                if (userResponse.status === 401) {
-                    const refreshResponse = await fetch('/api/auth/refresh');
-                    if (!refreshResponse.ok) {
-                        throw new Error('Failed to refresh token');
-                    }
-                    // Retry the user data fetch after refresh
-                    const retryUserResponse = await fetch('/api/auth/me');
-                    if (!retryUserResponse.ok) {
-                        throw new Error('Failed to fetch user data after token refresh');
-                    }
-                } else if (!userResponse.ok) {
-                    throw new Error('Failed to fetch user data');
+                if (!accessToken) {
+                    setUser(null);
+                    setLoading(false);
+                    return;
                 }
 
-                // Fetch all other data in parallel
-                const [userData, tracksResponse, artistsResponse, recentResponse] = await Promise.all([
-                    userResponse.status === 401 ? fetch('/api/auth/me').then(res => res.json()) : userResponse.json(),
-                    fetch(`/api/spotify/top-tracks?time_range=${timeRange}`),
-                    fetch(`/api/spotify/top-artists?time_range=${timeRange}`),
-                    fetch('/api/spotify/recently-played')
-                ]);
+                // Initialize the SDK
+                const spotify = SpotifyApi.withAccessToken(
+                    process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!,
+                    {
+                        access_token: accessToken,
+                        token_type: 'Bearer',
+                        expires_in: 3600,
+                        refresh_token: '' // Empty string instead of null
+                    }
+                );
 
-                if (!tracksResponse.ok || !artistsResponse.ok || !recentResponse.ok) {
-                    throw new Error('Failed to fetch data');
-                }
+                // Convert one_year to long_term for the API
+                const apiTimeRange = timeRange === 'one_year' ? 'long_term' : 
+                                   timeRange === 'medium_term' ? 'medium_term' :
+                                   timeRange === 'short_term' ? 'short_term' : 'medium_term';
 
-                const [tracksData, artistsData, recentData] = await Promise.all([
-                    tracksResponse.json(),
-                    artistsResponse.json(),
-                    recentResponse.json()
+                // Fetch all data in parallel
+                const [userData, tracksData, artistsData, recentData] = await Promise.all([
+                    spotify.currentUser.profile(),
+                    spotify.currentUser.topItems('tracks', apiTimeRange),
+                    spotify.currentUser.topItems('artists', apiTimeRange),
+                    spotify.player.getRecentlyPlayedTracks()
                 ]);
 
                 setUser(userData);
-                setTopTracks(tracksData.items || tracksData);
-                setTopArtists(artistsData.items || artistsData);
-                setRecentlyPlayed(recentData.items || recentData);
+                setTopTracks(tracksData.items);
+                setTopArtists(artistsData.items);
+                setRecentlyPlayed(recentData.items.map(item => ({
+                    track: item.track,
+                    played_at: item.played_at
+                })));
             } catch (error) {
                 console.error('Error fetching data:', error);
-                // Only reset user if we failed to refresh token
-                if (error instanceof Error && error.message === 'Failed to refresh token') {
-                    setUser(null);
-                }
+                setUser(null);
             } finally {
                 setLoading(false);
             }

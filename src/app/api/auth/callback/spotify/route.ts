@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         const clientSecret = process.env.SPOTIFY_CLIENT_SECRET!;
         const redirectUri = process.env.SPOTIFY_REDIRECT_URI!;
 
-        // Exchange the authorization code for access and refresh tokens
+        // Exchange the authorization code for tokens
         const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
             method: 'POST',
             headers: {
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
-            maxAge: tokens.expires_in // Spotify's token expiration time
+            maxAge: tokens.expires_in
         });
 
         // Set the refresh token in an HTTP-only cookie

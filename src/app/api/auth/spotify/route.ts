@@ -11,27 +11,20 @@ export async function GET() {
         );
     }
 
-    // Define the scopes your app needs
-    const scope = [
+    const scopes = [
         'user-read-private',
         'user-read-email',
         'user-top-read',
         'user-read-recently-played'
-    ].join(' ');
+    ];
 
-    // Generate a random state value
-    const state = Math.random().toString(36).substring(7);
-
-    // Construct the Spotify authorization URL
-    const params = new URLSearchParams({
-        response_type: 'code',
+    const authUrl = `https://accounts.spotify.com/authorize?${new URLSearchParams({
         client_id: clientId,
-        scope: scope,
+        response_type: 'code',
         redirect_uri: redirectUri,
-        state: state
-    });
-
-    const authUrl = `https://accounts.spotify.com/authorize?${params.toString()}`;
+        scope: scopes.join(' '),
+        state: 'state'
+    }).toString()}`;
 
     return NextResponse.json({ url: authUrl });
 } 
