@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
     const searchParams = new URL(request.url).searchParams;
     const code = searchParams.get('code');
-    const code_verifier = searchParams.get('code_verifier');
     const error = searchParams.get('error');
 
     if (error) {
@@ -16,16 +15,18 @@ export async function GET(request: Request) {
         return NextResponse.redirect(new URL('/?error=no_code', request.url));
     }
 
-    if (!code_verifier) {
-        console.error('No code verifier received');
-        return NextResponse.redirect(new URL('/?error=no_code_verifier', request.url));
-    }
-
     try {
         // Verify environment variables
         if (!process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET || !process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI) {
             console.error('Missing required environment variables');
             return NextResponse.redirect(new URL('/?error=config_error', request.url));
+        }
+
+        // Get the code verifier from the URL state parameter
+        const state = searchParams.get('state');
+        if (!state) {
+            console.error('No state parameter found');
+            return NextResponse.redirect(new URL('/?error=no_state', request.url));
         }
 
         const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
                 code,
                 grant_type: 'authorization_code',
                 redirect_uri: process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI,
-                code_verifier: code_verifier,
+                code_verifier: state, // Use the state as the code verifier
             }),
         });
 
