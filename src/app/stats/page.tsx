@@ -18,11 +18,38 @@ export default function StatsPage() {
 
     useEffect(() => {
         const checkAuth = () => {
-            const accessToken = localStorage.getItem('spotify_access_token');
+            console.log('Checking auth...');
+            console.log('Current URL:', window.location.href);
+            
+            // Get the hash parameters from the URL
+            const hash = window.location.hash.substring(1);
+            console.log('Hash:', hash);
+            
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+            const refreshToken = params.get('refresh_token');
+            
+            console.log('Access token:', accessToken ? 'Present' : 'Missing');
+            console.log('Refresh token:', refreshToken ? 'Present' : 'Missing');
+
             if (!accessToken) {
-                router.push('/');
+                console.log('No access token found, redirecting to home...');
+                window.location.href = '/';
                 return;
             }
+
+            // Store the tokens in localStorage
+            localStorage.setItem('spotify_access_token', accessToken);
+            if (refreshToken) {
+                localStorage.setItem('spotify_refresh_token', refreshToken);
+            }
+
+            console.log('Tokens stored in localStorage');
+
+            // Clear the hash from the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            console.log('Hash cleared from URL');
+
             setIsAuthenticated(true);
             setIsLoading(false);
         };
@@ -42,9 +69,11 @@ export default function StatsPage() {
     }
 
     if (!isAuthenticated) {
+        console.log('Not authenticated, rendering null');
         return null;
     }
 
+    console.log('Rendering stats page');
     return (
         <div className="min-h-screen bg-background">
             <Header />
