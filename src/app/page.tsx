@@ -48,6 +48,7 @@ export default function Home() {
             code_challenge: codeChallenge,
             scope: scope,
             state: state,
+            code_verifier: codeVerifier,
         });
 
         window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
