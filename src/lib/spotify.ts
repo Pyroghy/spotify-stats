@@ -3,7 +3,7 @@ import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 // Initialize Spotify API client
 export const spotifyApi = SpotifyApi.withUserAuthorization(
     process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!,
-    process.env.NEXT_PUBLIC_REDIRECT_URI!,
+    process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI!,
     [
         'user-read-email',
         'user-read-private',
