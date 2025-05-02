@@ -47,16 +47,20 @@ export default function StatsPage() {
             <Header />
             <main className="container mx-auto py-8 px-4 max-w-7xl">
                 <div className="space-y-8">
-                    <section>
-                        <h2 className="text-3xl font-bold mb-6">Your Top Tracks</h2>
-                        <TopTracks />
-                    </section>
+                    {/* Two-column layout for top tracks and artists */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <section>
+                            <h2 className="text-3xl font-bold mb-6">Your Top Tracks</h2>
+                            <TopTracks />
+                        </section>
+                        
+                        <section>
+                            <h2 className="text-3xl font-bold mb-6">Your Top Artists</h2>
+                            <TopArtists />
+                        </section>
+                    </div>
                     
-                    <section>
-                        <h2 className="text-3xl font-bold mb-6">Your Top Artists</h2>
-                        <TopArtists />
-                    </section>
-                    
+                    {/* Full-width sections below */}
                     <section>
                         <h2 className="text-3xl font-bold mb-6">Recently Played</h2>
                         <RecentlyPlayed />
