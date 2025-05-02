@@ -30,9 +30,9 @@ export function AudioFeatures({ accessToken }: AudioFeaturesProps) {
         const fetchFeatures = async () => {
             try {
                 setLoading(true);
-                const tracks = await getTopTracks(accessToken, 'medium_term');
+                const tracks = await getTopTracks('medium_term');
                 const trackIds = tracks.slice(0, 5).map((track: SpotifyTrack) => track.id);
-                const audioFeatures = await getAudioFeatures(accessToken, trackIds);
+                const audioFeatures = await getAudioFeatures(trackIds);
                 setFeatures(audioFeatures);
             } catch (error) {
                 console.error('Error fetching audio features:', error);

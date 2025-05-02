@@ -28,8 +28,9 @@
     │   │   └── page.tsx (main stats dashboard)
     │   └── api/
     │       └── auth/
-    │           └── [...nextauth]/
-    │               └── route.ts
+    │           └── callback/
+    │               └── spotify/
+    │                   └── route.ts
     ├── components/
     │   ├── ui/ (shadcn components)
     │   ├── stats/
@@ -49,13 +50,18 @@
 - [x] Set up environment variables:
   ```
   NEXT_PUBLIC_SPOTIFY_CLIENT_ID=
-  NEXT_PUBLIC_REDIRECT_URI=
+  NEXT_PUBLIC_SPOTIFY_REDIRECT_URI=
+  SPOTIFY_CLIENT_SECRET=
   ```
 
 ## Authentication
 - [x] Implement Spotify OAuth2 using @spotify/web-api-ts-sdk
 - [x] Create Spotify API client wrapper
 - [x] Handle token refresh and session persistence
+- [ ] Fix redirect URI configuration
+- [ ] Implement proper error handling for auth failures
+- [ ] Add loading states during authentication
+- [ ] Implement proper session management
 
 ## Spotify API Integration
 - [x] Set up Spotify Web API client using @spotify/web-api-ts-sdk
@@ -111,12 +117,15 @@
 - [ ] Document component usage
 - [ ] Add setup instructions
 - [ ] Add deployment instructions
+- [ ] Document authentication flow
+- [ ] Add troubleshooting guide for common issues
 
 ## Deployment
 - [ ] Set up CI/CD pipeline
 - [ ] Configure production environment
 - [ ] Set up monitoring and logging
 - [ ] Configure domain and SSL
+- [ ] Verify environment variables in production
 
 ## Future Enhancements
 - [ ] Add playlist creation based on stats
