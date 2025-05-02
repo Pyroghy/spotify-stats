@@ -3,9 +3,9 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
-export default function Home() {
+function HomeContent() {
     const searchParams = useSearchParams()
     const [error, setError] = useState<string | null>(null)
 
@@ -69,5 +69,13 @@ export default function Home() {
                 </Card>
             </div>
         </main>
+    )
+}
+
+export default function Home() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <HomeContent />
+        </Suspense>
     )
 }
