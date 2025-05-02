@@ -50,19 +50,37 @@ export default function Dashboard() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const [userResponse, tracksResponse, artistsResponse, recentResponse] = await Promise.all([
-                    fetch('/api/auth/me'),
+                // Try to fetch user data first
+                const userResponse = await fetch('/api/auth/me');
+
+                // If unauthorized, try to refresh the token
+                if (userResponse.status === 401) {
+                    const refreshResponse = await fetch('/api/auth/refresh');
+                    if (!refreshResponse.ok) {
+                        throw new Error('Failed to refresh token');
+                    }
+                    // Retry the user data fetch after refresh
+                    const retryUserResponse = await fetch('/api/auth/me');
+                    if (!retryUserResponse.ok) {
+                        throw new Error('Failed to fetch user data after token refresh');
+                    }
+                } else if (!userResponse.ok) {
+                    throw new Error('Failed to fetch user data');
+                }
+
+                // Fetch all other data in parallel
+                const [userData, tracksResponse, artistsResponse, recentResponse] = await Promise.all([
+                    userResponse.status === 401 ? fetch('/api/auth/me').then(res => res.json()) : userResponse.json(),
                     fetch(`/api/spotify/top-tracks?time_range=${timeRange}`),
                     fetch(`/api/spotify/top-artists?time_range=${timeRange}`),
                     fetch('/api/spotify/recently-played')
                 ]);
 
-                if (!userResponse.ok || !tracksResponse.ok || !artistsResponse.ok || !recentResponse.ok) {
+                if (!tracksResponse.ok || !artistsResponse.ok || !recentResponse.ok) {
                     throw new Error('Failed to fetch data');
                 }
 
-                const [userData, tracksData, artistsData, recentData] = await Promise.all([
-                    userResponse.json(),
+                const [tracksData, artistsData, recentData] = await Promise.all([
                     tracksResponse.json(),
                     artistsResponse.json(),
                     recentResponse.json()
@@ -74,6 +92,10 @@ export default function Dashboard() {
                 setRecentlyPlayed(recentData.items || recentData);
             } catch (error) {
                 console.error('Error fetching data:', error);
+                // Only reset user if we failed to refresh token
+                if (error instanceof Error && error.message === 'Failed to refresh token') {
+                    setUser(null);
+                }
             } finally {
                 setLoading(false);
             }
