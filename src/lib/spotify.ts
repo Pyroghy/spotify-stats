@@ -1,4 +1,4 @@
-import { SpotifyApi, AccessToken, SdkConfiguration, DefaultResponseDeserializer, DefaultResponseValidator, DocumentLocationRedirectionStrategy } from '@spotify/web-api-ts-sdk';
+import { SpotifyApi, SdkConfiguration, DefaultResponseDeserializer, DefaultResponseValidator, DocumentLocationRedirectionStrategy } from '@spotify/web-api-ts-sdk';
 
 // Custom error handler with more detailed logging
 class CustomErrorHandler {
@@ -68,25 +68,52 @@ export const spotifyApi = SpotifyApi.withUserAuthorization(
     sdkConfig
 );
 
-// Helper function to initiate authorization
+// Helper function to generate a random string for PKCE
+function generateRandomString(length: number): string {
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let text = '';
+    for (let i = 0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
+
+// Helper function to generate code verifier and challenge for PKCE
+async function generatePKCE(): Promise<{ codeVerifier: string; codeChallenge: string }> {
+    const codeVerifier = generateRandomString(128);
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
+    const digest = await window.crypto.subtle.digest('SHA-256', data);
+    const base64Digest = btoa(String.fromCharCode(...new Uint8Array(digest)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    return { codeVerifier, codeChallenge: base64Digest };
+}
+
+// Helper function to initiate authorization with PKCE
 export async function initiateAuth() {
-    return SpotifyApi.performUserAuthorization(
-        process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!,
-        process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI!,
-        [
+    const { codeVerifier, codeChallenge } = await generatePKCE();
+    
+    // Store the code verifier for later use
+    localStorage.setItem('spotify_code_verifier', codeVerifier);
+
+    const params = new URLSearchParams({
+        client_id: process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID!,
+        response_type: 'code',
+        redirect_uri: process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI!,
+        scope: [
             'user-read-email',
             'user-read-private',
             'user-top-read',
             'user-read-recently-played',
             'user-read-playback-state',
-        ],
-        async (token: AccessToken) => {
-            // Store the access token using localStorage
-            localStorage.setItem('spotify_access_token', token.access_token);
-            // Redirect to stats page
-            window.location.href = '/stats';
-        }
-    );
+        ].join(' '),
+        code_challenge_method: 'S256',
+        code_challenge: codeChallenge,
+    });
+
+    window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
 // Helper function to get user's top tracks using the SDK
