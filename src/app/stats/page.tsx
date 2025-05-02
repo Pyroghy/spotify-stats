@@ -5,39 +5,42 @@ import { TopTracks } from "@/components/stats/TopTracks";
 import { TopArtists } from "@/components/stats/TopArtists";
 import { RecentlyPlayed } from "@/components/stats/RecentlyPlayed";
 import { AudioFeatures } from "@/components/stats/AudioFeatures";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function StatsPage() {
     const router = useRouter();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Get the access token from the URL hash
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const token = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-        const error = params.get('error');
-        const errorDetails = params.get('details');
+        const checkAuth = () => {
+            const accessToken = localStorage.getItem('spotify_access_token');
+            if (!accessToken) {
+                router.push('/');
+                return;
+            }
+            setIsAuthenticated(true);
+            setIsLoading(false);
+        };
 
-        if (error) {
-            console.error('Auth error:', error, errorDetails);
-            router.push('/');
-            return;
-        }
-
-        if (!token) {
-            console.error('No access token found');
-            router.push('/');
-            return;
-        }
-
-        // Store tokens in localStorage (temporary solution)
-        if (refreshToken) {
-            localStorage.setItem('spotify_refresh_token', refreshToken);
-        }
-        localStorage.setItem('spotify_access_token', token);
+        checkAuth();
     }, [router]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+                    <p className="text-muted-foreground">Please wait while we verify your authentication.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        return null;
+    }
 
     return (
         <div className="min-h-screen bg-background">

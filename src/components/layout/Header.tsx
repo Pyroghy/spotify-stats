@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { spotifyApi } from "@/lib/spotify";
+import { initiateAuth } from "@/lib/spotify";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { UserProfile } from "@spotify/web-api-ts-sdk";
@@ -14,11 +14,29 @@ export function Header() {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const profile = await spotifyApi.currentUser.profile();
+                const accessToken = localStorage.getItem('spotify_access_token');
+                if (!accessToken) {
+                    setUser(null);
+                    return;
+                }
+
+                const response = await fetch('https://api.spotify.com/v1/me', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user profile');
+                }
+
+                const profile = await response.json();
                 setUser(profile);
             } catch {
                 // Not logged in or token expired
                 setUser(null);
+                localStorage.removeItem('spotify_access_token');
+                localStorage.removeItem('spotify_refresh_token');
             }
         };
 
@@ -29,10 +47,7 @@ export function Header() {
         try {
             setIsLoading(true);
             setError(null);
-            await spotifyApi.authenticate();
-            // After successful authentication, fetch user profile
-            const profile = await spotifyApi.currentUser.profile();
-            setUser(profile);
+            await initiateAuth();
         } catch (error) {
             console.error('Error during authentication:', error);
             setError('Failed to login. Please make sure you have set up your Spotify app correctly.');
@@ -42,8 +57,10 @@ export function Header() {
     };
 
     const handleLogout = () => {
-        // Clear the token from localStorage
-        localStorage.removeItem('spotify-sdk:token');
+        // Clear all Spotify related data from localStorage
+        localStorage.removeItem('spotify_access_token');
+        localStorage.removeItem('spotify_refresh_token');
+        localStorage.removeItem('spotify_code_verifier');
         // Reset user state
         setUser(null);
         // Reset error state
