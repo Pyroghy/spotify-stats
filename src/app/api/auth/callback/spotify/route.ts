@@ -22,13 +22,6 @@ export async function GET(request: Request) {
             return NextResponse.redirect(new URL('/?error=config_error', request.url));
         }
 
-        // Get the code verifier from the URL state parameter
-        const state = searchParams.get('state');
-        if (!state) {
-            console.error('No state parameter found');
-            return NextResponse.redirect(new URL('/?error=no_state', request.url));
-        }
-
         const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
             method: 'POST',
             headers: {
@@ -41,7 +34,6 @@ export async function GET(request: Request) {
                 code,
                 grant_type: 'authorization_code',
                 redirect_uri: process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI,
-                code_verifier: state, // Use the state as the code verifier
             }),
         });
 

@@ -31,9 +31,14 @@ export default function Home() {
         
         // Generate and store code verifier
         const codeVerifier = generateCodeVerifier(128);
+        localStorage.setItem('spotify_code_verifier', codeVerifier);
         
         // Generate code challenge
         const codeChallenge = await generateCodeChallenge(codeVerifier);
+        
+        // Generate random state
+        const state = crypto.getRandomValues(new Uint8Array(16))
+            .reduce((acc, x) => acc + x.toString(16).padStart(2, '0'), '');
         
         const params = new URLSearchParams({
             client_id: clientId!,
@@ -42,11 +47,9 @@ export default function Home() {
             code_challenge_method: 'S256',
             code_challenge: codeChallenge,
             scope: scope,
-            state: codeVerifier,
+            state: state,
+            code_verifier: codeVerifier,
         });
-
-        // Store the code verifier in localStorage
-        localStorage.setItem('spotify_code_verifier', codeVerifier);
 
         window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
     };
